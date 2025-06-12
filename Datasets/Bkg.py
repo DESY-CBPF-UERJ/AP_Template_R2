@@ -1,54 +1,57 @@
 analysis = "AP_Template_R2"
 nano_version = 'v9'
-path_0_16 = analysis+'/Datasets/Files/bkg_16/dti_0/'+nano_version+'/'
-path_1_16 = analysis+'/Datasets/Files/bkg_16/dti_1/'+nano_version+'/'
-path_0_17 = analysis+'/Datasets/Files/bkg_17/dti_0/'+nano_version+'/'
-path_0_18 = analysis+'/Datasets/Files/bkg_18/dti_0/'+nano_version+'/'
 
 #--------------------------------------------------------------------------------------------------
-# ID digits:
-# 1st-2nd = 16(2016),17(2017),18(2018)                              # Year
-# 3th-4th = 00(Data),01(MC-signal),02-13(MC-bkg),99(private sample) # Group
-# 5th-6th = 00(none),...                                            # Bkg -> Process
-# 5th-6th = 00(none),11(250_30),12(250_40),55(1250_100)             # Signal -> Signal point
-# 5th-6th = 00(none),01(A),02(B),03(C)                              # Data -> Era
-# 7th     = 0,1,2,...                                               # Data taking interval (DTI)
-
+# Production ID:
+# 00-09(Data), 10-19(MC-signal), 20-98(MC-bkg), 99(private sample)
+#
+# Data taking interval (DTI):
 # 2016 DTIs = 0(with "HIPM"/"APV")("pre-VFP"), 1(without "HIPM"/"APV")("pos-VFP")
 #--------------------------------------------------------------------------------------------------
 
+paths = {}
+paths["0_16"] = analysis+'/Datasets/Files/bkg_16/dti_0/'+nano_version+'/'
+paths["1_16"] = analysis+'/Datasets/Files/bkg_16/dti_1/'+nano_version+'/'
+paths["0_17"] = analysis+'/Datasets/Files/bkg_17/dti_0/'+nano_version+'/'
+paths["0_18"] = analysis+'/Datasets/Files/bkg_18/dti_0/'+nano_version+'/'
 
-periods = ["0_16", "1_16", "0_17", "0_18"]
-paths = [path_0_16, path_1_16, path_0_17, path_0_18]
 
-for period,path in zip(periods,paths):
+# https://xsecdb-xsdb-official.app.cern.ch/
+# Source[*] > > https://twiki.cern.ch/twiki/bin/viewauth/CMS/SummaryTable1G25ns
+# Source[**] > > https://twiki.cern.ch/twiki/bin/view/LHCPhysics/LHCHWG
+# Source[new1] > > https://twiki.cern.ch/twiki/bin/viewauth/CMS/StandardModelCrossSectionsat13TeV
+# Source[new2] > > https://twiki.cern.ch/twiki/bin/view/LHCPhysics/TtbarNNLO
+# Source[new3] > > https://twiki.cern.ch/twiki/bin/view/LHCPhysics/SingleTopRefXsec
+b_ds_info = { # [DatasetName, Production ID, PROC_XSEC[pb], XSEC_UNC[pb], XSEC_Accuracy]
+"TTFullLep": [
+    ["TTTo2L2Nu",                           '22',       88.51,              0,                  '[new2]NNLO+NNLL'],
+],
+
+"VZ": [
+    ["ZZTo2L2Nu",                           '25',       0.9738,             0.0009971,          'NLO'],
+    ["ZZTo4L",                              '25',       1.325,              0.00122,            'NLO'],
+    ["WZTo3LNu",                            '25',       4.664,              0.004639,           'NLO'],
+],
+}
+
+
+#----------------------------------------------------------------------------------------
+# [DO NOT TOUCH THIS PART]
+#----------------------------------------------------------------------------------------
+b_ds = {}
+for period in paths.keys():
 
     dti = period[0]
     year = period[-2:]
-    
-    DYPt50ToInf = [
-        ["DYJetsToLL_PtZ-50To100_"+period]           + [year+'0202'+dti, path+"DYJetsToLL_PtZ-50To100.txt"],
-        ["DYJetsToLL_PtZ-100To250_"+period]          + [year+'0203'+dti, path+"DYJetsToLL_PtZ-100To250.txt"],
-        ["DYJetsToLL_PtZ-250To400_"+period]          + [year+'0204'+dti, path+"DYJetsToLL_PtZ-250To400.txt"],
-        ["DYJetsToLL_PtZ-400To650_"+period]          + [year+'0205'+dti, path+"DYJetsToLL_PtZ-400To650.txt"],
-        ["DYJetsToLL_PtZ-650ToInf_"+period]          + [year+'0206'+dti, path+"DYJetsToLL_PtZ-650ToInf.txt"],
-    ]
-    
-    TTFullLep = [
-        ["TTTo2L2Nu_"+period]                        + [year+'0300'+dti, path+"TTTo2L2Nu.txt"],
-    ]
 
-    
-    if period == "0_16":
-        TTFullLep_0_16 = TTFullLep
-        DYPt50ToInf_0_16 = DYPt50ToInf
-    elif period == "1_16":
-        TTFullLep_1_16 = TTFullLep
-        DYPt50ToInf_1_16 = DYPt50ToInf
-    elif period == "0_17":
-        TTFullLep_0_17 = TTFullLep
-        DYPt50ToInf_0_17 = DYPt50ToInf
-    elif period == "0_18":
-        TTFullLep_0_18 = TTFullLep
-        DYPt50ToInf_0_18 = DYPt50ToInf
+    for key in b_ds_info.keys():
+        b_ds[key+"_"+period] = []
+        for ds in b_ds_info[key]:
+            list_temp = []
+            list_temp.append(ds[0]+"_"+period)
+            list_temp.append(ds[1]+year+dti)
+            list_temp.append(paths[period]+ds[0]+".txt")
+            list_temp.append(ds[2])
+            list_temp.append(ds[3])
+            b_ds[key+"_"+period].append(list_temp)
 
